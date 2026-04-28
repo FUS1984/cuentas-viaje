@@ -164,6 +164,22 @@ input:focus, textarea:focus, select:focus { box-shadow: 2px 2px 0 #1a1a1a; }
   gap: 6px;
 }
 .btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-outline.warn {
+  border-color: #7a2020;
+  color: #7a2020;
+  background: rgba(122, 32, 32, 0.06);
+}
+.backup-banner {
+  background: rgba(122, 32, 32, 0.08);
+  border: 1px solid #7a2020;
+  color: #7a2020;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 16px;
+  border-radius: 2px;
+}
+.backup-banner.hidden { display: none; }
 .btn-danger {
   background: transparent;
   color: #7a2020;
@@ -373,6 +389,8 @@ textarea {
     </div>
   </header>
 
+  <div id="backupBanner" class="backup-banner hidden"></div>
+
   <div class="tabs">
     <button class="tab active" data-tab="add">Agregar</button>
     <button class="tab" data-tab="list">Gastos <span id="countBadge"></span></button>
@@ -469,6 +487,7 @@ textarea {
     <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
       <button class="btn-outline" id="copyBtn">Copiar</button>
       <button class="btn-outline" id="downloadBtn">Descargar .txt</button>
+      <button class="btn-outline" id="downloadXlsxBtn">Descargar Excel</button>
     </div>
     <div class="divider"></div>
     <label class="label" style="margin-bottom:6px;">Importar</label>
@@ -527,6 +546,8 @@ textarea {
 const STORAGE_KEY = 'cuentas-viaje-fdo-v1';
 const RATE_KEY = 'cuentas-viaje-fdo-rate-v1';
 const CONFIG_KEY = 'cuentas-viaje-config-v1';
+const LAST_BACKUP_KEY = 'cuentas-viaje-last-backup-v1';
+const BACKUP_WARN_DAYS = 3;
 
 const COLORS = [
   { bg: '#1a3a2e', fg: '#e8dfd0' },
@@ -640,6 +661,61 @@ function save() {
   } catch (e) {
     showSave('error');
     alert('No se pudo guardar: ' + e);
+  }
+}
+
+// -------- Persistence & backup tracking --------
+async function requestPersistence() {
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      const already = await navigator.storage.persisted();
+      if (!already) {
+        const granted = await navigator.storage.persist();
+        console.log('Persistent storage:', granted ? 'granted' : 'denied');
+      }
+    }
+  } catch (e) { console.warn('persist error', e); }
+}
+
+function markBackupDone() {
+  try { localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); } catch (e) {}
+  renderBackupStatus();
+}
+
+function getDaysSinceBackup() {
+  try {
+    const iso = localStorage.getItem(LAST_BACKUP_KEY);
+    if (!iso) return null;
+    const ms = Date.now() - new Date(iso).getTime();
+    return Math.floor(ms / (1000 * 60 * 60 * 24));
+  } catch (e) { return null; }
+}
+
+function renderBackupStatus() {
+  const banner = document.getElementById('backupBanner');
+  const btn = document.getElementById('backupBtn');
+  const days = getDaysSinceBackup();
+  const hasData = state.expenses.length > 0;
+
+  if (!banner || !btn) return;
+
+  if (!hasData) {
+    banner.classList.add('hidden');
+    btn.classList.remove('warn');
+    return;
+  }
+
+  if (days === null) {
+    banner.classList.remove('hidden');
+    banner.textContent = '⚠ Aún no has descargado ningún respaldo. Toca ↓ Respaldo y guarda el .txt.';
+    btn.classList.add('warn');
+  } else if (days >= BACKUP_WARN_DAYS) {
+    banner.classList.remove('hidden');
+    banner.textContent = '⚠ Último respaldo hace ' + days + ' día' + (days === 1 ? '' : 's') + '. Conviene descargar uno nuevo.';
+    btn.classList.add('warn');
+  } else {
+    banner.classList.add('hidden');
+    btn.classList.remove('warn');
   }
 }
 
@@ -768,6 +844,7 @@ function renderList() {
   renderFilterChips();
   const filtered = getFilteredExpenses();
   document.getElementById('countBadge').textContent = state.expenses.length > 0 ? '(' + state.expenses.length + ')' : '';
+  renderBackupStatus();
 
   const container = document.getElementById('expenseList');
   if (filtered.length === 0) {
@@ -933,6 +1010,170 @@ function buildExport() {
   ].join('\n');
 }
 
+// -------- Excel export --------
+async function ensureSheetJS() {
+  if (window.XLSX) return window.XLSX;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('No se pudo cargar la librería de Excel. Conéctate a internet e intenta de nuevo.'));
+    document.head.appendChild(s);
+  });
+  return window.XLSX;
+}
+
+function buildExcelWorkbook(XLSX) {
+  const items = getFilteredExpenses();
+  const travelers = state.config.travelers.slice();
+  const N = travelers.length;
+  const rate = state.rate;
+
+  // ---- Sheet 1: Detalle ----
+  const detailHeader = ['Fecha', 'Día', 'Descripción', 'Monto USD', 'Monto CLP', 'Pagó', 'Tipo', 'Por persona USD'];
+  const detailRows = items.slice().sort((a,b) => a.date.localeCompare(b.date)).map(e => {
+    const perPerson = e.type === 'shared' ? e.amount / N : e.amount;
+    return [
+      e.date,
+      dayName(e.date),
+      e.desc,
+      Number(e.amount.toFixed(2)),
+      Math.round(e.amount * rate),
+      e.payer,
+      e.type === 'shared' ? 'Compartido' : 'Personal',
+      Number(perPerson.toFixed(2)),
+    ];
+  });
+  // Total row
+  const totalUsd = items.reduce((a,b) => a + b.amount, 0);
+  detailRows.push(['', '', 'TOTAL', Number(totalUsd.toFixed(2)), Math.round(totalUsd * rate), '', '', '']);
+  const ws1 = XLSX.utils.aoa_to_sheet([detailHeader, ...detailRows]);
+  ws1['!cols'] = [{wch:11},{wch:6},{wch:32},{wch:11},{wch:12},{wch:12},{wch:12},{wch:14}];
+
+  // ---- Sheet 2: Por día (matriz) ----
+  const dates = [...new Set(items.map(e => e.date))].sort();
+  const matrixHeader = ['Fecha', 'Día', ...travelers, 'Total día USD', 'Total día CLP'];
+  const matrixRows = dates.map(d => {
+    const row = [d, dayName(d)];
+    let dayTotal = 0;
+    travelers.forEach(t => {
+      const sum = items.filter(e => e.date === d && e.payer === t).reduce((a,b) => a + b.amount, 0);
+      row.push(sum > 0 ? Number(sum.toFixed(2)) : '');
+      dayTotal += sum;
+    });
+    row.push(Number(dayTotal.toFixed(2)));
+    row.push(Math.round(dayTotal * rate));
+    return row;
+  });
+  // Totals row per traveler
+  const totalsRow = ['', 'TOTAL'];
+  let grandTotal = 0;
+  travelers.forEach(t => {
+    const sum = items.filter(e => e.payer === t).reduce((a,b) => a + b.amount, 0);
+    totalsRow.push(Number(sum.toFixed(2)));
+    grandTotal += sum;
+  });
+  totalsRow.push(Number(grandTotal.toFixed(2)));
+  totalsRow.push(Math.round(grandTotal * rate));
+  const ws2 = XLSX.utils.aoa_to_sheet([matrixHeader, ...matrixRows, totalsRow]);
+  ws2['!cols'] = [{wch:11},{wch:6}, ...travelers.map(() => ({wch:11})), {wch:14},{wch:14}];
+
+  // ---- Sheet 3: Resumen ----
+  // Calculate using filtered items
+  let totalShared = 0;
+  const paidShared = {};
+  travelers.forEach(t => paidShared[t] = 0);
+  items.forEach(e => {
+    if (e.type === 'shared') {
+      totalShared += e.amount;
+      if (paidShared[e.payer] !== undefined) paidShared[e.payer] += e.amount;
+    }
+  });
+  const sharePerPerson = N > 0 ? totalShared / N : 0;
+  const balance = {};
+  travelers.forEach(t => { balance[t] = (paidShared[t] || 0) - sharePerPerson; });
+
+  const debtors = [], creditors = [];
+  travelers.forEach(t => {
+    const b = balance[t];
+    if (b < -0.01) debtors.push({ name: t, amt: -b });
+    else if (b > 0.01) creditors.push({ name: t, amt: b });
+  });
+  debtors.sort((a,b) => b.amt - a.amt);
+  creditors.sort((a,b) => b.amt - a.amt);
+  const settlements = [];
+  let di = 0, ci = 0;
+  while (di < debtors.length && ci < creditors.length) {
+    const pay = Math.min(debtors[di].amt, creditors[ci].amt);
+    settlements.push({ from: debtors[di].name, to: creditors[ci].name, amount: pay });
+    debtors[di].amt -= pay;
+    creditors[ci].amt -= pay;
+    if (debtors[di].amt < 0.01) di++;
+    if (creditors[ci].amt < 0.01) ci++;
+  }
+
+  const summaryRows = [
+    [state.config.tripName || 'Cuentas del viaje'],
+    [state.config.tripStart + '  →  ' + state.config.tripEnd],
+    ['Tipo de cambio: 1 USD = ' + rate + ' CLP'],
+    [],
+    ['BALANCE COMPARTIDO'],
+    ['Total compartido USD', Number(totalShared.toFixed(2))],
+    ['Total compartido CLP', Math.round(totalShared * rate)],
+    ['Por persona (÷' + N + ') USD', Number(sharePerPerson.toFixed(2))],
+    ['Por persona (÷' + N + ') CLP', Math.round(sharePerPerson * rate)],
+    [],
+    ['BALANCE POR PERSONA'],
+    ['Persona', 'Pagó USD', 'Le toca USD', 'Saldo USD', 'Saldo CLP'],
+    ...travelers.map(t => [
+      t,
+      Number((paidShared[t] || 0).toFixed(2)),
+      Number(sharePerPerson.toFixed(2)),
+      Number(balance[t].toFixed(2)),
+      Math.round(balance[t] * rate),
+    ]),
+    [],
+    ['LIQUIDACIONES (quién le debe a quién)'],
+  ];
+  if (settlements.length === 0) {
+    summaryRows.push(['Todo cuadrado']);
+  } else {
+    summaryRows.push(['Paga', 'Recibe', 'Monto USD', 'Monto CLP']);
+    settlements.forEach(s => {
+      summaryRows.push([s.from, s.to, Number(s.amount.toFixed(2)), Math.round(s.amount * rate)]);
+    });
+  }
+  const ws3 = XLSX.utils.aoa_to_sheet(summaryRows);
+  ws3['!cols'] = [{wch:22},{wch:14},{wch:14},{wch:14},{wch:14}];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws1, 'Detalle');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Por día');
+  XLSX.utils.book_append_sheet(wb, ws3, 'Resumen');
+  return wb;
+}
+
+async function downloadExcel() {
+  const btn = document.getElementById('downloadXlsxBtn');
+  const orig = btn.textContent;
+  btn.textContent = 'Cargando...';
+  btn.disabled = true;
+  try {
+    const XLSX = await ensureSheetJS();
+    const wb = buildExcelWorkbook(XLSX);
+    const today = new Date().toISOString().slice(0,10);
+    const suffix = state.filter === 'all' ? '' : '-' + state.filter;
+    const name = 'gastos-viaje' + suffix + '-' + today + '.xlsx';
+    XLSX.writeFile(wb, name);
+    markBackupDone();
+  } catch (e) {
+    alert(e.message || 'Error al generar Excel');
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
+}
+
 document.getElementById('backupBtn').addEventListener('click', () => {
   const tag = state.filter === 'all' ? 'todos los gastos'
             : state.filter === 'shared' ? 'solo gastos compartidos'
@@ -953,10 +1194,12 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
   const txt = document.getElementById('exportText').value;
   try {
     await navigator.clipboard.writeText(txt);
+    markBackupDone();
     alert('Copiado al portapapeles');
   } catch (e) {
     document.getElementById('exportText').select();
     document.execCommand('copy');
+    markBackupDone();
     alert('Copiado');
   }
 });
@@ -972,7 +1215,10 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   a.download = 'respaldo-viaje' + suffix + '-' + today + '.txt';
   a.click();
   URL.revokeObjectURL(url);
+  markBackupDone();
 });
+
+document.getElementById('downloadXlsxBtn').addEventListener('click', downloadExcel);
 
 document.getElementById('importBtn').addEventListener('click', () => {
   const txt = document.getElementById('importText').value.trim();
@@ -1188,6 +1434,8 @@ document.getElementById('fDate').value = todayISO();
 renderHeader();
 renderForm();
 renderList();
+renderBackupStatus();
+requestPersistence();
 </script>
 </body>
 </html>
