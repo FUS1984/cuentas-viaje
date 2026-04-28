@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cuentas Viaje">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f0e8d9">
+<title>Cuentas del viaje</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f0e8d9'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='40' fill='%231a1a1a'%3E$%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f0e8d9'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='40' fill='%231a1a1a'%3E$%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;1,400;1,500&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: 'Manrope', system-ui, sans-serif; color: #1a1a1a; }
+body {
+  min-height: 100vh;
+  background: #f0e8d9;
+  background-image: radial-gradient(at 20% 0%, #e8dcc4 0px, transparent 50%), radial-gradient(at 80% 100%, #d9cdb3 0px, transparent 50%);
+  padding-bottom: 80px;
+  padding-top: env(safe-area-inset-top);
+}
+.container { max-width: 560px; margin: 0 auto; padding: 20px 16px; }
+header {
+  border-bottom: 1px solid #1a1a1a;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.title-block { flex: 1; min-width: 0; }
+h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  word-wrap: break-word;
+}
+.sub { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.6; margin-top: 6px; }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.icon-btn {
+  background: transparent;
+  border: 1px solid #1a1a1a;
+  color: #1a1a1a;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  padding: 0;
+}
+.icon-btn:active { transform: scale(0.95); }
+.save-indicator {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.save-indicator.show { opacity: 1; }
+.save-indicator.saved { color: #1a3a2e; }
+.save-indicator.error { color: #7a2020; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; background: #1a1a1a; padding: 4px; }
+.tab {
+  flex: 1;
+  padding: 10px 8px;
+  background: transparent;
+  color: #f0e8d9;
+  border: none;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.tab.active { background: #f0e8d9; color: #1a1a1a; }
+.card { background: #fbf6ec; border: 1px solid #1a1a1a; padding: 16px; margin-bottom: 12px; }
+.label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+input, textarea, select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #1a1a1a;
+  background: #fff;
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  border-radius: 0;
+  color: #1a1a1a;
+}
+input.mono { font-family: 'JetBrains Mono', monospace; }
+input:focus, textarea:focus, select:focus { box-shadow: 2px 2px 0 #1a1a1a; }
+.row { display: flex; gap: 8px; margin-bottom: 12px; }
+.row > div { flex: 1; }
+.field { margin-bottom: 12px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  padding: 9px 14px;
+  border: 1px solid #1a1a1a;
+  background: transparent;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chip.active { color: #f0e8d9; background: #1a1a1a; }
+.btn {
+  width: 100%;
+  padding: 14px;
+  background: #1a1a1a;
+  color: #f0e8d9;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-outline {
+  padding: 8px 12px;
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid #1a1a1a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-outline.warn {
+  border-color: #7a2020;
+  color: #7a2020;
+  background: rgba(122, 32, 32, 0.06);
+}
+.backup-banner {
+  background: rgba(122, 32, 32, 0.08);
+  border: 1px solid #7a2020;
+  color: #7a2020;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 16px;
+  border-radius: 2px;
+}
+.backup-banner.hidden { display: none; }
+.btn-danger {
+  background: transparent;
+  color: #7a2020;
+  border: 1px solid #7a2020;
+  width: 100%;
+  padding: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-family: inherit;
+  cursor: pointer;
+}
+.error { color: #7a2020; font-size: 13px; margin-top: 4px; margin-bottom: 8px; }
+.expense-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px dashed rgba(26,26,26,0.2);
+  gap: 12px;
+}
+.date-header {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 18px;
+  margin-top: 16px;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #1a1a1a;
+  text-transform: capitalize;
+}
+.amount { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 15px; white-space: nowrap; }
+.amount-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; opacity: 0.55; white-space: nowrap; }
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.avatar.big { width: 28px; height: 28px; font-size: 11px; }
+.type-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #f0e8d9;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.type-badge.shared { background: #1a3a2e; }
+.type-badge.personal { background: #3d3a5c; }
+.type-badge.expense { background: #7a3520; }
+.stat-card { background: #fbf6ec; border: 1px solid #1a1a1a; padding: 14px; }
+.stat-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.6; font-weight: 700; }
+.stat-value { font-family: 'Fraunces', serif; font-size: 24px; margin-top: 4px; font-weight: 500; }
+.settlement-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #1a1a1a;
+  color: #f0e8d9;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #7a2020;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 16px;
+}
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 18px;
+  opacity: 0.5;
+}
+.rate-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fbf6ec;
+  border: 1px solid #1a1a1a;
+  margin-bottom: 16px;
+}
+.rate-input input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+  padding: 0;
+}
+.rate-input span { font-size: 12px; font-weight: 600; }
+.rate-input span.lbl { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.balance-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(26,26,26,0.2);
+}
+.balance-row:last-child { border-bottom: none; }
+.balance-pos { color: #1a3a2e; }
+.balance-neg { color: #7a2020; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,26,26,0.7);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+  overflow-y: auto;
+  padding-top: env(safe-area-inset-top, 16px);
+}
+.modal-box {
+  background: #fbf6ec;
+  border: 1px solid #1a1a1a;
+  padding: 20px;
+  max-width: 500px;
+  width: 100%;
+  margin: auto 0;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1a1a1a;
+}
+.modal-title { font-family: 'Fraunces', serif; font-size: 24px; font-style: italic; }
+.modal-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+  padding: 0 6px;
+}
+textarea {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  resize: vertical;
+}
+.hidden { display: none !important; }
+.checkbox-row { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; }
+.checkbox-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #7a3520; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+.toolbar-spacer { flex: 1; }
+.payer-info { display: flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.75; }
+.expense-meta { font-size: 11px; opacity: 0.6; }
+.detail-text { font-size: 10px; opacity: 0.55; margin-top: 6px; line-height: 1.4; }
+.detail-text-mid { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+.expense-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.expense-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.settle-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.settle-right { text-align: right; }
+.settle-amt { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14px; }
+.settle-clp { font-size: 10px; opacity: 0.6; font-family: 'JetBrains Mono', monospace; }
+.help-text { font-size: 12px; margin-bottom: 8px; opacity: 0.7; line-height: 1.4; }
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 18px;
+  margin: 16px 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #1a1a1a;
+}
+.traveler-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.traveler-row input { padding: 8px 10px; font-size: 14px; }
+.note-text { font-size: 11px; opacity: 0.6; margin-top: 4px; line-height: 1.4; }
+.divider { border-top: 1px dashed rgba(26,26,26,0.3); margin: 16px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="title-block">
+      <h1 id="hTitle">Cuentas del viaje</h1>
+      <div class="sub" id="hSub">Fernando · 30 abr — 10 may</div>
+    </div>
+    <div class="header-actions">
+      <div id="saveIndicator" class="save-indicator"></div>
+      <button class="icon-btn" id="settingsBtn" aria-label="ajustes" title="Ajustes">⚙</button>
+    </div>
+  </header>
+
+  <div id="backupBanner" class="backup-banner hidden"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="add">Agregar</button>
+    <button class="tab" data-tab="list">Gastos <span id="countBadge"></span></button>
+    <button class="tab" data-tab="summary">Resumen</button>
+  </div>
+
+  <!-- ADD TAB -->
+  <div id="tab-add" class="tab-content">
+    <div class="card">
+      <div class="field">
+        <label class="label">Tipo de gasto</label>
+        <div class="chips" id="typeChips"></div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label class="label">Fecha</label>
+          <input type="date" id="fDate">
+        </div>
+        <div>
+          <label class="label">Moneda</label>
+          <div class="chips" id="currencyChips"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label" id="fAmountLabel">Monto USD</label>
+        <input type="text" inputmode="decimal" id="fAmount" class="mono" placeholder="0.00">
+        <div class="help-text" id="fAmountConv" style="margin-top:4px; min-height:14px;"></div>
+      </div>
+
+      <div class="field">
+        <label class="label">Descripción</label>
+        <input type="text" id="fDesc" placeholder="ej. cena restaurant">
+      </div>
+
+      <div id="payerField" class="field">
+        <label class="label">Pagó</label>
+        <div class="chips" id="payerChips"></div>
+      </div>
+
+      <div class="field">
+        <label class="checkbox-row">
+          <input type="checkbox" id="fExpense">
+          <span>Es rendición (gasto a rendir a la organización)</span>
+        </label>
+      </div>
+
+      <div id="categoryField" class="field hidden">
+        <label class="label">Categoría (opcional)</label>
+        <input type="text" id="fCategory" placeholder="ej. transporte, alimentación">
+      </div>
+
+      <div id="addError" class="error hidden"></div>
+
+      <button class="btn" id="addBtn">＋ Registrar gasto</button>
+    </div>
+  </div>
+
+  <!-- LIST TAB -->
+  <div id="tab-list" class="tab-content hidden">
+    <div class="toolbar">
+      <div class="chips" id="filterChips"></div>
+      <div class="toolbar-spacer"></div>
+      <button class="btn-outline" id="backupBtn">↓ Respaldo</button>
+    </div>
+    <div id="expenseList"></div>
+  </div>
+
+  <!-- SUMMARY TAB -->
+  <div id="tab-summary" class="tab-content hidden">
+    <div class="rate-input">
+      <span class="lbl">1 USD =</span>
+      <input type="number" id="rateInput" value="950">
+      <span>CLP</span>
+    </div>
+
+    <div class="summary-grid">
+      <div class="stat-card">
+        <div class="stat-label" id="myTotalLabel">Mi gasto total</div>
+        <div class="stat-value" id="fdoTotal">$0.00</div>
+        <div class="detail-text-mid" id="fdoTotalClp">$0</div>
+        <div class="detail-text" id="fdoBreakdown"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total compartido</div>
+        <div class="stat-value" id="sharedTotal">$0.00</div>
+        <div class="detail-text-mid" id="sharedTotalClp">$0</div>
+        <div class="detail-text" id="sharedBreakdown"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label" style="margin-bottom:12px;">Compartidos · pagó cada uno</div>
+      <div id="balancesList"></div>
+    </div>
+
+    <div class="label" style="margin-bottom:8px;">Quién le debe a quién</div>
+    <div id="settlementsList"></div>
+  </div>
+</div>
+
+<!-- BACKUP MODAL -->
+<div id="backupModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Respaldo</div>
+      <button class="modal-close" id="closeBackup">×</button>
+    </div>
+    <div class="help-text" id="backupNote">Respalda de vez en cuando. Si pierdes los datos, pega el respaldo abajo y presiona Importar.</div>
+    <textarea id="exportText" readonly style="height:140px; margin-bottom:8px;"></textarea>
+    <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+      <button class="btn-outline" id="copyBtn">Copiar</button>
+      <button class="btn-outline" id="downloadBtn">Descargar .txt</button>
+      <button class="btn-outline" id="downloadXlsxBtn">Descargar Excel</button>
+    </div>
+    <div class="divider"></div>
+    <label class="label" style="margin-bottom:6px;">Importar</label>
+    <div class="help-text">El respaldo importado reemplaza solo los gastos. La configuración (viajeros, fechas) se mantiene.</div>
+    <textarea id="importText" placeholder="Pega aquí el respaldo..." style="height:100px; margin-bottom:8px;"></textarea>
+    <button class="btn" id="importBtn">↑ Reemplazar gastos</button>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="settingsModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Ajustes</div>
+      <button class="modal-close" id="closeSettings">×</button>
+    </div>
+
+    <div class="field">
+      <label class="label">Nombre del viaje</label>
+      <input type="text" id="cfgTripName" placeholder="ej. Cuentas del viaje">
+    </div>
+
+    <div class="row">
+      <div>
+        <label class="label">Inicio</label>
+        <input type="date" id="cfgTripStart">
+      </div>
+      <div>
+        <label class="label">Fin</label>
+        <input type="date" id="cfgTripEnd">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Moneda por defecto al registrar gastos</label>
+      <div class="chips" id="cfgCurrencyChips"></div>
+      <div class="help-text">Se puede cambiar en cada gasto. Los gastos en CLP se convierten a USD usando el tipo de cambio del Resumen al momento del registro.</div>
+    </div>
+
+    <div class="section-title">Dueño de la app</div>
+    <div class="help-text">La persona cuyos gastos personales se registran y de quien se calcula "Mi gasto total".</div>
+    <div class="chips" id="ownerChips"></div>
+
+    <div class="section-title">Viajeros <span id="travelerCount" style="font-style:normal; font-size:13px; opacity:0.6;"></span></div>
+    <div class="help-text">Edita nombres directamente. Mínimo 1, máximo 6. No se puede borrar al dueño ni a alguien con gastos registrados.</div>
+    <div id="travelersList"></div>
+    <button class="btn-outline" id="addTravelerBtn" style="margin-top:8px;">＋ Agregar viajero</button>
+
+    <div class="divider"></div>
+
+    <button class="btn" id="saveSettingsBtn">Guardar cambios</button>
+    <div class="note-text" style="text-align:center;">Los cambios solo se aplican al presionar Guardar.</div>
+
+    <div class="divider"></div>
+
+    <button class="btn-danger" id="resetBtn">Borrar todos los gastos</button>
+    <div class="note-text" style="text-align:center;">Esto elimina todos los gastos pero conserva los ajustes.</div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'cuentas-viaje-fdo-v1';
+const RATE_KEY = 'cuentas-viaje-fdo-rate-v1';
+const CONFIG_KEY = 'cuentas-viaje-config-v1';
+const LAST_BACKUP_KEY = 'cuentas-viaje-last-backup-v1';
+const BACKUP_WARN_DAYS = 3;
+
+const COLORS = [
+  { bg: '#1a3a2e', fg: '#e8dfd0' },
+  { bg: '#7a3520', fg: '#f3e9d8' },
+  { bg: '#3d3a5c', fg: '#ece6dc' },
+  { bg: '#5a4520', fg: '#f0e8d2' },
+  { bg: '#2d4a5a', fg: '#e0eaef' },
+  { bg: '#5a2d3a', fg: '#f0d8e0' },
+];
+
+let state = {
+  expenses: [],
+  rate: 950,
+  config: {
+    tripName: 'Cuentas del viaje',
+    tripStart: '2026-04-30',
+    tripEnd: '2026-05-10',
+    owner: 'Fernando',
+    travelers: ['Fernando', 'Jorge', 'Rodrigo'],
+    defaultCurrency: 'USD',
+  },
+  fType: 'shared',
+  fPayer: 'Fernando',
+  fCurrency: 'USD',
+  fExpense: false,
+  fCategory: '',
+  filter: 'all',
+  // working copy of config used inside settings modal
+  cfgDraft: null,
+};
+
+// -------- Helpers --------
+function initials(name) { return (name || '').slice(0,2).toUpperCase(); }
+function colorFor(name, travelers) {
+  const tr = travelers || state.config.travelers;
+  const idx = tr.indexOf(name);
+  return idx >= 0 ? COLORS[idx % COLORS.length] : { bg: '#222', fg: '#fff' };
+}
+function fmtUSD(n) {
+  return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', minimumFractionDigits:2 }).format(n || 0);
+}
+function fmtCLP(n) {
+  return new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 }).format(n || 0);
+}
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return d + '/' + m;
+}
+function fmtDateLong(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso + 'T12:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+  } catch(e) { return fmtDate(iso); }
+}
+function dayName(iso) {
+  try { return new Date(iso + 'T12:00').toLocaleDateString('es-CL', { weekday: 'long' }); }
+  catch(e) { return ''; }
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function avatarHtml(name, big, travelers) {
+  const c = colorFor(name, travelers);
+  return '<span class="avatar' + (big ? ' big' : '') + '" style="background:' + c.bg + '; color:' + c.fg + ';">' + escapeHtml(initials(name)) + '</span>';
+}
+function chipStyle(active, color) {
+  if (!active) return '';
+  return 'background:' + color.bg + '; color:' + color.fg + ';';
+}
+
+// -------- Storage --------
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) state.expenses = parsed;
+    }
+    const r = localStorage.getItem(RATE_KEY);
+    if (r) state.rate = parseFloat(r) || 950;
+    const cfg = localStorage.getItem(CONFIG_KEY);
+    if (cfg) {
+      const parsed = JSON.parse(cfg);
+      state.config = Object.assign({}, state.config, parsed);
+      if (!Array.isArray(state.config.travelers) || state.config.travelers.length === 0) {
+        state.config.travelers = ['Fernando', 'Jorge', 'Rodrigo'];
+      }
+      if (!state.config.travelers.includes(state.config.owner)) {
+        state.config.owner = state.config.travelers[0];
+      }
+      if (!state.config.defaultCurrency) state.config.defaultCurrency = 'USD';
+    }
+    // Migrate old expenses to new shape
+    state.expenses.forEach(e => {
+      if (!e.currency) {
+        e.currency = 'USD';
+        e.amountOriginal = e.amount;
+        e.rateAtEntry = state.rate;
+      }
+      if (typeof e.expense !== 'boolean') e.expense = false;
+      if (typeof e.category !== 'string') e.category = '';
+    });
+    state.fPayer = state.config.owner;
+    state.fCurrency = state.config.defaultCurrency || 'USD';
+  } catch (e) {
+    console.error('load error', e);
+  }
+}
+
+function showSave(status) {
+  const el = document.getElementById('saveIndicator');
+  el.className = 'save-indicator show ' + status;
+  if (status === 'saved') { el.textContent = '✓ Guardado'; setTimeout(() => el.classList.remove('show'), 1800); }
+  else if (status === 'error') { el.textContent = '✕ Error'; }
+  else if (status === 'saving') { el.textContent = '… Guardando'; }
+}
+
+function save() {
+  showSave('saving');
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.expenses));
+    localStorage.setItem(RATE_KEY, String(state.rate));
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(state.config));
+    showSave('saved');
+  } catch (e) {
+    showSave('error');
+    alert('No se pudo guardar: ' + e);
+  }
+}
+
+// -------- Persistence & backup tracking --------
+async function requestPersistence() {
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      const already = await navigator.storage.persisted();
+      if (!already) {
+        const granted = await navigator.storage.persist();
+        console.log('Persistent storage:', granted ? 'granted' : 'denied');
+      }
+    }
+  } catch (e) { console.warn('persist error', e); }
+}
+
+function markBackupDone() {
+  try { localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); } catch (e) {}
+  renderBackupStatus();
+}
+
+function getDaysSinceBackup() {
+  try {
+    const iso = localStorage.getItem(LAST_BACKUP_KEY);
+    if (!iso) return null;
+    const ms = Date.now() - new Date(iso).getTime();
+    return Math.floor(ms / (1000 * 60 * 60 * 24));
+  } catch (e) { return null; }
+}
+
+function renderBackupStatus() {
+  const banner = document.getElementById('backupBanner');
+  const btn = document.getElementById('backupBtn');
+  const days = getDaysSinceBackup();
+  const hasData = state.expenses.length > 0;
+
+  if (!banner || !btn) return;
+
+  if (!hasData) {
+    banner.classList.add('hidden');
+    btn.classList.remove('warn');
+    return;
+  }
+
+  if (days === null) {
+    banner.classList.remove('hidden');
+    banner.textContent = '⚠ Aún no has descargado ningún respaldo. Toca ↓ Respaldo y guarda el .txt.';
+    btn.classList.add('warn');
+  } else if (days >= BACKUP_WARN_DAYS) {
+    banner.classList.remove('hidden');
+    banner.textContent = '⚠ Último respaldo hace ' + days + ' día' + (days === 1 ? '' : 's') + '. Conviene descargar uno nuevo.';
+    btn.classList.add('warn');
+  } else {
+    banner.classList.add('hidden');
+    btn.classList.remove('warn');
+  }
+}
+
+// -------- Render header & form --------
+function renderHeader() {
+  document.getElementById('hTitle').textContent = state.config.tripName || 'Cuentas del viaje';
+  const sub = state.config.owner + ' · ' + fmtDateLong(state.config.tripStart) + ' — ' + fmtDateLong(state.config.tripEnd);
+  document.getElementById('hSub').textContent = sub;
+  document.getElementById('myTotalLabel').textContent = 'Gasto total de ' + state.config.owner;
+}
+
+function renderTypeChips() {
+  const c = document.getElementById('typeChips');
+  const onlyOne = state.config.travelers.length < 2;
+  if (onlyOne) state.fType = 'personal';
+  // If "rendición" is on, force personal (rendering goes to org regardless)
+  if (state.fExpense) state.fType = 'personal';
+  c.innerHTML = '';
+  const sharedDisabled = onlyOne || state.fExpense;
+  if (!onlyOne) {
+    const sharedActive = state.fType === 'shared';
+    const sb = document.createElement('button');
+    sb.className = 'chip' + (sharedActive ? ' active' : '');
+    if (sharedActive) sb.style.cssText = 'background:#1a3a2e; color:#f0e8d9;';
+    if (sharedDisabled) {
+      sb.style.opacity = '0.4';
+      sb.style.cursor = 'not-allowed';
+      sb.title = 'Las rendiciones siempre son personales';
+    }
+    sb.innerHTML = '⊞ Compartido (÷' + state.config.travelers.length + ')';
+    sb.addEventListener('click', () => {
+      if (sharedDisabled) return;
+      state.fType = 'shared';
+      renderForm();
+    });
+    c.appendChild(sb);
+  }
+  const personalActive = state.fType === 'personal';
+  const pb = document.createElement('button');
+  pb.className = 'chip' + (personalActive ? ' active' : '');
+  if (personalActive) pb.style.cssText = 'background:#3d3a5c; color:#f0e8d9;';
+  pb.innerHTML = '◉ Personal ' + escapeHtml(state.config.owner);
+  pb.addEventListener('click', () => { state.fType = 'personal'; renderForm(); });
+  c.appendChild(pb);
+}
+
+function renderCurrencyChips() {
+  const c = document.getElementById('currencyChips');
+  if (!c) return;
+  c.innerHTML = '';
+  ['USD', 'CLP'].forEach(cur => {
+    const active = state.fCurrency === cur;
+    const b = document.createElement('button');
+    b.className = 'chip' + (active ? ' active' : '');
+    if (active) b.style.cssText = 'background:#1a1a1a; color:#f0e8d9;';
+    b.textContent = cur;
+    b.addEventListener('click', () => { state.fCurrency = cur; renderForm(); });
+    c.appendChild(b);
+  });
+  document.getElementById('fAmountLabel').textContent = 'Monto ' + state.fCurrency;
+  updateAmountConv();
+}
+
+function updateAmountConv() {
+  const el = document.getElementById('fAmountConv');
+  if (!el) return;
+  const v = parseFloat((document.getElementById('fAmount').value || '').replace(',', '.'));
+  if (!v || v <= 0 || !state.rate) { el.textContent = ''; return; }
+  if (state.fCurrency === 'CLP') {
+    el.textContent = '≈ ' + fmtUSD(v / state.rate) + ' (TC ' + state.rate + ')';
+  } else {
+    el.textContent = '≈ ' + fmtCLP(v * state.rate) + ' (TC ' + state.rate + ')';
+  }
+}
+
+function renderPayerChips() {
+  const c = document.getElementById('payerChips');
+  c.innerHTML = '';
+  state.config.travelers.forEach(t => {
+    const active = state.fPayer === t;
+    const col = colorFor(t);
+    const b = document.createElement('button');
+    b.className = 'chip' + (active ? ' active' : '');
+    if (active) b.style.cssText = 'background:' + col.bg + '; color:' + col.fg + ';';
+    b.textContent = t;
+    b.addEventListener('click', () => { state.fPayer = t; renderForm(); });
+    c.appendChild(b);
+  });
+  document.getElementById('payerField').style.display = state.fType === 'shared' ? 'block' : 'none';
+}
+
+function renderForm() {
+  if (!state.config.travelers.includes(state.fPayer)) state.fPayer = state.config.owner;
+  renderTypeChips();
+  renderCurrencyChips();
+  renderPayerChips();
+  document.getElementById('fExpense').checked = !!state.fExpense;
+  document.getElementById('categoryField').classList.toggle('hidden', !state.fExpense);
+}
+
+// -------- Tabs --------
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+    if (btn.dataset.tab === 'list') renderList();
+    if (btn.dataset.tab === 'summary') renderSummary();
+  });
+});
+
+// -------- Add expense --------
+document.getElementById('fExpense').addEventListener('change', (e) => {
+  state.fExpense = e.target.checked;
+  renderForm();
+});
+document.getElementById('fAmount').addEventListener('input', updateAmountConv);
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const desc = document.getElementById('fDesc').value.trim();
+  const amountStr = document.getElementById('fAmount').value.replace(',', '.');
+  const amountInput = parseFloat(amountStr);
+  const date = document.getElementById('fDate').value;
+  const isExpense = document.getElementById('fExpense').checked;
+  const category = (document.getElementById('fCategory').value || '').trim();
+  const errEl = document.getElementById('addError');
+  errEl.classList.add('hidden');
+
+  if (!desc) { errEl.textContent = 'Falta la descripción'; errEl.classList.remove('hidden'); return; }
+  if (!amountInput || amountInput <= 0) { errEl.textContent = 'Monto inválido'; errEl.classList.remove('hidden'); return; }
+  if (!date) { errEl.textContent = 'Falta la fecha'; errEl.classList.remove('hidden'); return; }
+  if (state.fCurrency === 'CLP' && (!state.rate || state.rate <= 0)) {
+    errEl.textContent = 'Configura un tipo de cambio válido en el Resumen antes de cargar gastos en CLP';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  // Convert to USD using current rate
+  const amountUSD = state.fCurrency === 'CLP' ? amountInput / state.rate : amountInput;
+  // Rendición forces personal type
+  const finalType = isExpense ? 'personal' : state.fType;
+
+  const exp = {
+    id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
+    date,
+    desc,
+    amount: amountUSD,
+    amountOriginal: amountInput,
+    currency: state.fCurrency,
+    rateAtEntry: state.rate,
+    payer: finalType === 'personal' ? state.config.owner : state.fPayer,
+    type: finalType,
+    expense: isExpense,
+    category: isExpense ? category : '',
+    createdAt: Date.now(),
+  };
+  state.expenses.unshift(exp);
+  save();
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fAmount').value = '';
+  document.getElementById('fCategory').value = '';
+  document.getElementById('fAmountConv').textContent = '';
+  state.fExpense = false;
+  state.fCategory = '';
+  renderForm();
+  document.querySelector('.tab[data-tab="list"]').click();
+});
+
+// -------- List rendering --------
+function renderFilterChips() {
+  const c = document.getElementById('filterChips');
+  c.innerHTML = '';
+  const opts = [
+    { id: 'all', label: 'Todos' },
+    { id: 'shared', label: 'Compartidos', color: { bg: '#1a3a2e', fg: '#f0e8d9' } },
+    { id: 'personal', label: 'Personal', color: { bg: '#3d3a5c', fg: '#f0e8d9' } },
+    { id: 'expense', label: 'Rendición', color: { bg: '#7a3520', fg: '#f3e9d8' } },
+  ];
+  opts.forEach(o => {
+    const active = state.filter === o.id;
+    const b = document.createElement('button');
+    b.className = 'chip' + (active ? ' active' : '');
+    if (active && o.color) b.style.cssText = 'background:' + o.color.bg + '; color:' + o.color.fg + ';';
+    b.textContent = o.label;
+    b.addEventListener('click', () => { state.filter = o.id; renderList(); });
+    c.appendChild(b);
+  });
+}
+
+function getFilteredExpenses() {
+  if (state.filter === 'all') return state.expenses;
+  if (state.filter === 'shared') return state.expenses.filter(e => e.type === 'shared');
+  if (state.filter === 'personal') return state.expenses.filter(e => e.type === 'personal');
+  if (state.filter === 'expense') return state.expenses.filter(e => e.expense === true);
+  return state.expenses;
+}
+
+function renderList() {
+  renderFilterChips();
+  const filtered = getFilteredExpenses();
+  document.getElementById('countBadge').textContent = state.expenses.length > 0 ? '(' + state.expenses.length + ')' : '';
+  renderBackupStatus();
+
+  const container = document.getElementById('expenseList');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">' + (state.expenses.length === 0 ? 'Aún no hay gastos registrados' : 'Sin gastos en esta vista') + '</div>';
+    return;
+  }
+
+  const groups = {};
+  filtered.forEach(e => {
+    if (!groups[e.date]) groups[e.date] = [];
+    groups[e.date].push(e);
+  });
+  const dates = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+
+  let html = '';
+  dates.forEach(d => {
+    html += '<div class="date-header">' + fmtDate(d) + ' · ' + dayName(d) + '</div>';
+    groups[d].forEach(e => {
+      const typeBadge = e.type === 'shared'
+        ? '<span class="type-badge shared">÷' + state.config.travelers.length + '</span>'
+        : '<span class="type-badge personal">personal</span>';
+      const expBadge = e.expense ? '<span class="type-badge expense">rendición</span>' : '';
+      const payerInfo = e.type === 'shared'
+        ? '<div class="payer-info">' + avatarHtml(e.payer) + '<span>pagó ' + escapeHtml(e.payer) + '</span></div>'
+        : '';
+      const catLine = (e.expense && e.category)
+        ? '<div class="expense-meta">categoría: ' + escapeHtml(e.category) + '</div>'
+        : '';
+      // Show original amount + USD if differs
+      const isCLP = e.currency === 'CLP';
+      const mainAmt = isCLP ? fmtCLP(e.amountOriginal) : fmtUSD(e.amount);
+      const subAmt = isCLP ? '<div class="amount-sub">' + fmtUSD(e.amount) + '</div>' : '';
+      html += '<div class="expense-row">'
+        + '<div style="flex:1; min-width:0;">'
+          + '<div class="expense-title">' + escapeHtml(e.desc) + ' ' + typeBadge + ' ' + expBadge + '</div>'
+          + payerInfo
+          + catLine
+        + '</div>'
+        + '<div class="expense-actions">'
+          + '<div class="amount">' + mainAmt + '</div>'
+          + subAmt
+          + '<button class="delete-btn" data-id="' + e.id + '" aria-label="eliminar">🗑</button>'
+        + '</div>'
+      + '</div>';
+    });
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm('¿Eliminar este gasto?')) {
+        state.expenses = state.expenses.filter(e => e.id !== btn.dataset.id);
+        save();
+        renderList();
+      }
+    });
+  });
+}
+
+// -------- Summary --------
+function calculate() {
+  let totalShared = 0, totalPersonalOwner = 0;
+  const paidShared = {};
+  state.config.travelers.forEach(t => paidShared[t] = 0);
+
+  state.expenses.forEach(e => {
+    if (e.type === 'shared') {
+      totalShared += e.amount;
+      if (paidShared[e.payer] !== undefined) paidShared[e.payer] += e.amount;
+    } else {
+      if (e.payer === state.config.owner) totalPersonalOwner += e.amount;
+    }
+  });
+
+  const N = state.config.travelers.length;
+  const sharePerPerson = N > 0 ? totalShared / N : 0;
+  const balance = {};
+  state.config.travelers.forEach(t => { balance[t] = (paidShared[t] || 0) - sharePerPerson; });
+
+  const debtors = [], creditors = [];
+  state.config.travelers.forEach(t => {
+    const b = balance[t];
+    if (b < -0.01) debtors.push({ name: t, amt: -b });
+    else if (b > 0.01) creditors.push({ name: t, amt: b });
+  });
+  debtors.sort((a,b) => b.amt - a.amt);
+  creditors.sort((a,b) => b.amt - a.amt);
+  const settlements = [];
+  let i = 0, j = 0;
+  while (i < debtors.length && j < creditors.length) {
+    const pay = Math.min(debtors[i].amt, creditors[j].amt);
+    settlements.push({ from: debtors[i].name, to: creditors[j].name, amount: pay });
+    debtors[i].amt -= pay;
+    creditors[j].amt -= pay;
+    if (debtors[i].amt < 0.01) i++;
+    if (creditors[j].amt < 0.01) j++;
+  }
+
+  return {
+    totalShared, totalPersonalOwner, sharePerPerson, paidShared, balance, settlements,
+    fdoTotal: totalPersonalOwner + sharePerPerson,
+  };
+}
+
+function renderSummary() {
+  document.getElementById('rateInput').value = state.rate;
+  const c = calculate();
+
+  document.getElementById('fdoTotal').textContent = fmtUSD(c.fdoTotal);
+  document.getElementById('fdoTotalClp').textContent = fmtCLP(c.fdoTotal * state.rate);
+  document.getElementById('fdoBreakdown').innerHTML = 'personal ' + fmtUSD(c.totalPersonalOwner) + '<br>+ 1/' + state.config.travelers.length + ' compartido ' + fmtUSD(c.sharePerPerson);
+
+  document.getElementById('sharedTotal').textContent = fmtUSD(c.totalShared);
+  document.getElementById('sharedTotalClp').textContent = fmtCLP(c.totalShared * state.rate);
+  document.getElementById('sharedBreakdown').textContent = 'c/u: ' + fmtUSD(c.sharePerPerson);
+
+  const balHtml = state.config.travelers.map(t => {
+    const bal = c.balance[t];
+    const cls = bal > 0.01 ? 'balance-pos' : (bal < -0.01 ? 'balance-neg' : '');
+    const sign = bal > 0.01 ? '+' : '';
+    return '<div class="balance-row">'
+      + avatarHtml(t, true)
+      + '<div>'
+        + '<div style="font-weight:600; font-size:14px;">' + escapeHtml(t) + (t === state.config.owner ? ' <span style="font-size:10px; opacity:0.6; font-weight:500;">· dueño</span>' : '') + '</div>'
+        + '<div class="expense-meta">pagó ' + fmtUSD(c.paidShared[t] || 0) + ' · le toca ' + fmtUSD(c.sharePerPerson) + '</div>'
+      + '</div>'
+      + '<div class="amount ' + cls + '">' + sign + fmtUSD(bal) + '</div>'
+    + '</div>';
+  }).join('');
+  document.getElementById('balancesList').innerHTML = balHtml;
+
+  const settleEl = document.getElementById('settlementsList');
+  if (c.settlements.length === 0) {
+    settleEl.innerHTML = '<div class="empty" style="padding:20px;">Todo cuadrado</div>';
+  } else {
+    settleEl.innerHTML = c.settlements.map(s =>
+      '<div class="settlement-row">'
+        + '<div class="settle-left">'
+          + avatarHtml(s.from)
+          + '<span style="font-weight:600; font-size:13px;">' + escapeHtml(s.from) + '</span>'
+          + '<span style="opacity:0.5; font-size:11px;">→</span>'
+          + avatarHtml(s.to)
+          + '<span style="font-weight:600; font-size:13px;">' + escapeHtml(s.to) + '</span>'
+        + '</div>'
+        + '<div class="settle-right">'
+          + '<div class="settle-amt">' + fmtUSD(s.amount) + '</div>'
+          + '<div class="settle-clp">' + fmtCLP(s.amount * state.rate) + '</div>'
+        + '</div>'
+      + '</div>'
+    ).join('');
+  }
+}
+
+document.getElementById('rateInput').addEventListener('input', (e) => {
+  state.rate = parseFloat(e.target.value) || 0;
+  save();
+  renderSummary();
+});
+
+// -------- Backup --------
+function buildExport() {
+  const items = getFilteredExpenses();
+  const tag = state.filter === 'shared' ? ' (solo compartidos)'
+            : state.filter === 'personal' ? ' (solo personal)'
+            : state.filter === 'expense' ? ' (solo rendición)'
+            : '';
+  const lines = items.map(e => {
+    const cur = e.currency || 'USD';
+    const orig = e.amountOriginal != null ? e.amountOriginal : e.amount;
+    const rateAt = e.rateAtEntry || state.rate;
+    const isExp = e.expense ? '1' : '0';
+    const cat = (e.category || '').replace(/\|/g, '/');
+    return e.date + ' | '
+      + e.desc.replace(/\|/g, '/') + ' | '
+      + e.amount.toFixed(2) + ' | '
+      + e.payer + ' | '
+      + e.type + ' | '
+      + cur + ' | '
+      + orig.toFixed(2) + ' | '
+      + rateAt + ' | '
+      + isExp + ' | '
+      + cat;
+  });
+  return [
+    '# Respaldo ' + (state.config.tripName || 'viaje') + tag + ' (' + items.length + ' gastos)',
+    '# v2: fecha | descripción | monto USD | pagó | tipo | moneda | monto original | TC al registrar | rendición(0/1) | categoría',
+    ...lines,
+  ].join('\n');
+}
+
+// -------- Excel export --------
+async function ensureSheetJS() {
+  if (window.XLSX) return window.XLSX;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('No se pudo cargar la librería de Excel. Conéctate a internet e intenta de nuevo.'));
+    document.head.appendChild(s);
+  });
+  return window.XLSX;
+}
+
+function buildExcelWorkbook(XLSX) {
+  const items = getFilteredExpenses();
+  const travelers = state.config.travelers.slice();
+  const N = travelers.length;
+  const rate = state.rate;
+  const isExpenseFilter = state.filter === 'expense';
+
+  // ---- Sheet 1: Detalle ----
+  const baseHeader = ['Fecha', 'Día', 'Descripción', 'Moneda', 'Monto original', 'Monto USD', 'Monto CLP', 'TC al registrar', 'Pagó', 'Tipo', 'Rendición', 'Por persona USD'];
+  const detailHeader = isExpenseFilter ? [...baseHeader, 'Categoría'] : baseHeader;
+  const detailRows = items.slice().sort((a,b) => a.date.localeCompare(b.date)).map(e => {
+    const perPerson = e.type === 'shared' ? e.amount / N : e.amount;
+    const currency = e.currency || 'USD';
+    const orig = e.amountOriginal != null ? e.amountOriginal : e.amount;
+    const tcReg = e.rateAtEntry || rate;
+    const row = [
+      e.date,
+      dayName(e.date),
+      e.desc,
+      currency,
+      Number(orig.toFixed(2)),
+      Number(e.amount.toFixed(2)),
+      Math.round(e.amount * rate),
+      tcReg,
+      e.payer,
+      e.type === 'shared' ? 'Compartido' : 'Personal',
+      e.expense ? 'Sí' : 'No',
+      Number(perPerson.toFixed(2)),
+    ];
+    if (isExpenseFilter) row.push(e.category || '');
+    return row;
+  });
+  // Total row
+  const totalUsd = items.reduce((a,b) => a + b.amount, 0);
+  const totalRow = ['', '', 'TOTAL', '', '', Number(totalUsd.toFixed(2)), Math.round(totalUsd * rate), '', '', '', '', ''];
+  if (isExpenseFilter) totalRow.push('');
+  detailRows.push(totalRow);
+  const ws1 = XLSX.utils.aoa_to_sheet([detailHeader, ...detailRows]);
+  const baseCols = [{wch:11},{wch:6},{wch:32},{wch:8},{wch:13},{wch:11},{wch:12},{wch:12},{wch:12},{wch:12},{wch:10},{wch:14}];
+  ws1['!cols'] = isExpenseFilter ? [...baseCols, {wch:18}] : baseCols;
+
+  // ---- Sheet 2: Por día (matriz) ----
+  const dates = [...new Set(items.map(e => e.date))].sort();
+  const matrixHeader = ['Fecha', 'Día', ...travelers, 'Total día USD', 'Total día CLP'];
+  const matrixRows = dates.map(d => {
+    const row = [d, dayName(d)];
+    let dayTotal = 0;
+    travelers.forEach(t => {
+      const sum = items.filter(e => e.date === d && e.payer === t).reduce((a,b) => a + b.amount, 0);
+      row.push(sum > 0 ? Number(sum.toFixed(2)) : '');
+      dayTotal += sum;
+    });
+    row.push(Number(dayTotal.toFixed(2)));
+    row.push(Math.round(dayTotal * rate));
+    return row;
+  });
+  // Totals row per traveler
+  const totalsRow = ['', 'TOTAL'];
+  let grandTotal = 0;
+  travelers.forEach(t => {
+    const sum = items.filter(e => e.payer === t).reduce((a,b) => a + b.amount, 0);
+    totalsRow.push(Number(sum.toFixed(2)));
+    grandTotal += sum;
+  });
+  totalsRow.push(Number(grandTotal.toFixed(2)));
+  totalsRow.push(Math.round(grandTotal * rate));
+  const ws2 = XLSX.utils.aoa_to_sheet([matrixHeader, ...matrixRows, totalsRow]);
+  ws2['!cols'] = [{wch:11},{wch:6}, ...travelers.map(() => ({wch:11})), {wch:14},{wch:14}];
+
+  // ---- Sheet 3: Resumen ----
+  // Calculate using filtered items
+  let totalShared = 0;
+  const paidShared = {};
+  travelers.forEach(t => paidShared[t] = 0);
+  items.forEach(e => {
+    if (e.type === 'shared') {
+      totalShared += e.amount;
+      if (paidShared[e.payer] !== undefined) paidShared[e.payer] += e.amount;
+    }
+  });
+  const sharePerPerson = N > 0 ? totalShared / N : 0;
+  const balance = {};
+  travelers.forEach(t => { balance[t] = (paidShared[t] || 0) - sharePerPerson; });
+
+  const debtors = [], creditors = [];
+  travelers.forEach(t => {
+    const b = balance[t];
+    if (b < -0.01) debtors.push({ name: t, amt: -b });
+    else if (b > 0.01) creditors.push({ name: t, amt: b });
+  });
+  debtors.sort((a,b) => b.amt - a.amt);
+  creditors.sort((a,b) => b.amt - a.amt);
+  const settlements = [];
+  let di = 0, ci = 0;
+  while (di < debtors.length && ci < creditors.length) {
+    const pay = Math.min(debtors[di].amt, creditors[ci].amt);
+    settlements.push({ from: debtors[di].name, to: creditors[ci].name, amount: pay });
+    debtors[di].amt -= pay;
+    creditors[ci].amt -= pay;
+    if (debtors[di].amt < 0.01) di++;
+    if (creditors[ci].amt < 0.01) ci++;
+  }
+
+  const summaryRows = [
+    [state.config.tripName || 'Cuentas del viaje'],
+    [state.config.tripStart + '  →  ' + state.config.tripEnd],
+    ['Tipo de cambio: 1 USD = ' + rate + ' CLP'],
+    [],
+    ['BALANCE COMPARTIDO'],
+    ['Total compartido USD', Number(totalShared.toFixed(2))],
+    ['Total compartido CLP', Math.round(totalShared * rate)],
+    ['Por persona (÷' + N + ') USD', Number(sharePerPerson.toFixed(2))],
+    ['Por persona (÷' + N + ') CLP', Math.round(sharePerPerson * rate)],
+    [],
+    ['BALANCE POR PERSONA'],
+    ['Persona', 'Pagó USD', 'Le toca USD', 'Saldo USD', 'Saldo CLP'],
+    ...travelers.map(t => [
+      t,
+      Number((paidShared[t] || 0).toFixed(2)),
+      Number(sharePerPerson.toFixed(2)),
+      Number(balance[t].toFixed(2)),
+      Math.round(balance[t] * rate),
+    ]),
+    [],
+    ['LIQUIDACIONES (quién le debe a quién)'],
+  ];
+  if (settlements.length === 0) {
+    summaryRows.push(['Todo cuadrado']);
+  } else {
+    summaryRows.push(['Paga', 'Recibe', 'Monto USD', 'Monto CLP']);
+    settlements.forEach(s => {
+      summaryRows.push([s.from, s.to, Number(s.amount.toFixed(2)), Math.round(s.amount * rate)]);
+    });
+  }
+  const ws3 = XLSX.utils.aoa_to_sheet(summaryRows);
+  ws3['!cols'] = [{wch:22},{wch:14},{wch:14},{wch:14},{wch:14}];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws1, 'Detalle');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Por día');
+  XLSX.utils.book_append_sheet(wb, ws3, 'Resumen');
+  return wb;
+}
+
+async function downloadExcel() {
+  const btn = document.getElementById('downloadXlsxBtn');
+  const orig = btn.textContent;
+  btn.textContent = 'Cargando...';
+  btn.disabled = true;
+  try {
+    const XLSX = await ensureSheetJS();
+    const wb = buildExcelWorkbook(XLSX);
+    const today = new Date().toISOString().slice(0,10);
+    const suffix = state.filter === 'all' ? '' : '-' + state.filter;
+    const name = 'gastos-viaje' + suffix + '-' + today + '.xlsx';
+    XLSX.writeFile(wb, name);
+    markBackupDone();
+  } catch (e) {
+    alert(e.message || 'Error al generar Excel');
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('backupBtn').addEventListener('click', () => {
+  const tag = state.filter === 'all' ? 'todos los gastos'
+            : state.filter === 'shared' ? 'solo gastos compartidos'
+            : state.filter === 'expense' ? 'solo gastos de rendición'
+            : 'solo gastos personales';
+  document.getElementById('backupNote').textContent = 'Exportando ' + tag + '. Cambia el filtro arriba para exportar otro subconjunto.';
+  document.getElementById('exportText').value = buildExport();
+  document.getElementById('importText').value = '';
+  document.getElementById('backupModal').classList.remove('hidden');
+});
+document.getElementById('closeBackup').addEventListener('click', () => {
+  document.getElementById('backupModal').classList.add('hidden');
+});
+document.getElementById('backupModal').addEventListener('click', (e) => {
+  if (e.target.id === 'backupModal') document.getElementById('backupModal').classList.add('hidden');
+});
+
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  const txt = document.getElementById('exportText').value;
+  try {
+    await navigator.clipboard.writeText(txt);
+    markBackupDone();
+    alert('Copiado al portapapeles');
+  } catch (e) {
+    document.getElementById('exportText').select();
+    document.execCommand('copy');
+    markBackupDone();
+    alert('Copiado');
+  }
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const txt = buildExport();
+  const blob = new Blob([txt], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0,10);
+  const suffix = state.filter === 'all' ? '' : '-' + state.filter;
+  a.href = url;
+  a.download = 'respaldo-viaje' + suffix + '-' + today + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  markBackupDone();
+});
+
+document.getElementById('downloadXlsxBtn').addEventListener('click', downloadExcel);
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  const txt = document.getElementById('importText').value.trim();
+  if (!txt) return;
+  try {
+    const lines = txt.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+    const parsed = lines.map(l => {
+      const parts = l.split('|').map(s => s.trim());
+      if (parts.length < 5) throw new Error('formato inválido en línea: ' + l);
+      const [date, desc, amount, payer, type] = parts;
+      const amt = parseFloat(amount);
+      // Optional new fields (v2 format)
+      const currency = parts[5] || 'USD';
+      const amountOriginal = parts[6] ? parseFloat(parts[6]) : amt;
+      const rateAtEntry = parts[7] ? parseFloat(parts[7]) : state.rate;
+      const expense = parts[8] === '1';
+      const category = parts[9] || '';
+      return {
+        id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
+        date,
+        desc,
+        amount: amt,
+        amountOriginal,
+        currency,
+        rateAtEntry,
+        payer,
+        type,
+        expense,
+        category,
+        createdAt: Date.now(),
+      };
+    });
+    if (!confirm('¿Reemplazar los ' + state.expenses.length + ' gastos actuales con ' + parsed.length + ' gastos importados?')) return;
+    state.expenses = parsed;
+    save();
+    document.getElementById('backupModal').classList.add('hidden');
+    document.querySelector('.tab[data-tab="list"]').click();
+    alert('Importados ' + parsed.length + ' gastos');
+  } catch (e) {
+    alert('Error al importar: ' + e);
+  }
+});
+
+// -------- Settings --------
+function openSettings() {
+  state.cfgDraft = JSON.parse(JSON.stringify(state.config));
+  document.getElementById('cfgTripName').value = state.cfgDraft.tripName || '';
+  document.getElementById('cfgTripStart').value = state.cfgDraft.tripStart || '';
+  document.getElementById('cfgTripEnd').value = state.cfgDraft.tripEnd || '';
+  renderSettingsTravelers();
+  renderSettingsOwner();
+  renderSettingsCurrency();
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function renderSettingsCurrency() {
+  const c = document.getElementById('cfgCurrencyChips');
+  if (!c) return;
+  c.innerHTML = '';
+  ['USD', 'CLP'].forEach(cur => {
+    const active = (state.cfgDraft.defaultCurrency || 'USD') === cur;
+    const b = document.createElement('button');
+    b.className = 'chip' + (active ? ' active' : '');
+    if (active) b.style.cssText = 'background:#1a1a1a; color:#f0e8d9;';
+    b.textContent = cur;
+    b.addEventListener('click', () => {
+      state.cfgDraft.defaultCurrency = cur;
+      renderSettingsCurrency();
+    });
+    c.appendChild(b);
+  });
+}
+
+function renderSettingsTravelers() {
+  const list = document.getElementById('travelersList');
+  const draft = state.cfgDraft;
+  document.getElementById('travelerCount').textContent = '(' + draft.travelers.length + '/6)';
+  list.innerHTML = '';
+  draft.travelers.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'traveler-row';
+    const c = colorFor(t, draft.travelers);
+    const av = document.createElement('span');
+    av.className = 'avatar';
+    av.style.cssText = 'background:' + c.bg + '; color:' + c.fg + ';';
+    av.textContent = initials(t);
+    row.appendChild(av);
+
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = t;
+    inp.maxLength = 20;
+    inp.addEventListener('input', (e) => {
+      const val = e.target.value;
+      const oldName = draft.travelers[i];
+      draft.travelers[i] = val;
+      if (draft.owner === oldName) draft.owner = val;
+      av.textContent = initials(val);
+    });
+    row.appendChild(inp);
+
+    const isOwner = draft.owner === t;
+    const hasExpenses = state.expenses.some(e => e.payer === t);
+    const canDelete = !isOwner && !hasExpenses && draft.travelers.length > 1;
+    const del = document.createElement('button');
+    del.className = 'icon-btn';
+    del.style.cssText = 'border-color:#7a2020; color:#7a2020; width:32px; height:32px; font-size:14px;';
+    del.textContent = '✕';
+    del.disabled = !canDelete;
+    if (!canDelete) {
+      del.style.opacity = '0.3';
+      del.style.cursor = 'not-allowed';
+      if (isOwner) del.title = 'Es el dueño';
+      else if (hasExpenses) del.title = 'Tiene gastos registrados';
+      else del.title = 'Mínimo 1 viajero';
+    }
+    del.addEventListener('click', () => {
+      if (!canDelete) return;
+      draft.travelers.splice(i, 1);
+      renderSettingsTravelers();
+      renderSettingsOwner();
+    });
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+  document.getElementById('addTravelerBtn').disabled = draft.travelers.length >= 6;
+}
+
+function renderSettingsOwner() {
+  const c = document.getElementById('ownerChips');
+  const draft = state.cfgDraft;
+  c.innerHTML = '';
+  draft.travelers.forEach(t => {
+    const active = draft.owner === t;
+    const col = colorFor(t, draft.travelers);
+    const b = document.createElement('button');
+    b.className = 'chip' + (active ? ' active' : '');
+    if (active) b.style.cssText = 'background:' + col.bg + '; color:' + col.fg + ';';
+    b.textContent = t || '(sin nombre)';
+    b.addEventListener('click', () => {
+      draft.owner = t;
+      renderSettingsOwner();
+    });
+    c.appendChild(b);
+  });
+}
+
+document.getElementById('addTravelerBtn').addEventListener('click', () => {
+  const draft = state.cfgDraft;
+  if (draft.travelers.length >= 6) return;
+  let name = 'Viajero ' + (draft.travelers.length + 1);
+  let n = 1;
+  while (draft.travelers.includes(name)) {
+    n++;
+    name = 'Viajero ' + (draft.travelers.length + n);
+  }
+  draft.travelers.push(name);
+  renderSettingsTravelers();
+  renderSettingsOwner();
+});
+
+document.getElementById('settingsBtn').addEventListener('click', openSettings);
+document.getElementById('closeSettings').addEventListener('click', () => {
+  document.getElementById('settingsModal').classList.add('hidden');
+});
+document.getElementById('settingsModal').addEventListener('click', (e) => {
+  if (e.target.id === 'settingsModal') document.getElementById('settingsModal').classList.add('hidden');
+});
+
+document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+  const draft = state.cfgDraft;
+  const oldTravelers = state.config.travelers.slice();
+  const oldOwner = state.config.owner;
+
+  // Trim names
+  draft.travelers = draft.travelers.map(t => (t || '').trim());
+
+  // Validate
+  if (draft.travelers.length < 1) { alert('Debe haber al menos 1 viajero'); return; }
+  if (draft.travelers.some(t => !t)) { alert('Hay nombres vacíos'); return; }
+  const seen = new Set();
+  for (const t of draft.travelers) {
+    if (seen.has(t)) { alert('Hay nombres duplicados: ' + t); return; }
+    seen.add(t);
+  }
+  if (!draft.travelers.includes(draft.owner)) {
+    draft.owner = draft.travelers[0];
+  }
+  if (draft.tripStart && draft.tripEnd && draft.tripStart > draft.tripEnd) {
+    alert('La fecha de inicio no puede ser posterior a la de fin');
+    return;
+  }
+
+  draft.tripName = (document.getElementById('cfgTripName').value || '').trim() || 'Cuentas del viaje';
+  draft.tripStart = document.getElementById('cfgTripStart').value;
+  draft.tripEnd = document.getElementById('cfgTripEnd').value;
+
+  // Map old payer names to new ones (rename)
+  const renameMap = {};
+  oldTravelers.forEach((oldName, i) => {
+    const newName = draft.travelers[i];
+    if (newName && newName !== oldName) renameMap[oldName] = newName;
+  });
+
+  // Apply renames AND owner-rename for personal expenses
+  const ownerRenamed = (oldOwner !== draft.owner) && (renameMap[oldOwner] === draft.owner);
+  state.expenses.forEach(e => {
+    if (renameMap[e.payer]) e.payer = renameMap[e.payer];
+  });
+
+  // Detect removed travelers (had expenses → blocked already, but double-check)
+  const removed = oldTravelers.filter(t => !draft.travelers.includes(t) && !Object.values(renameMap).includes(t));
+  if (removed.length > 0) {
+    const stillReferenced = state.expenses.filter(e => removed.includes(e.payer));
+    if (stillReferenced.length > 0) {
+      alert('No se puede aplicar: hay gastos asociados a viajeros eliminados.');
+      return;
+    }
+  }
+
+  state.config = draft;
+  state.fPayer = state.config.owner;
+  state.fCurrency = state.config.defaultCurrency || 'USD';
+  save();
+  document.getElementById('settingsModal').classList.add('hidden');
+  renderHeader();
+  renderForm();
+  renderList();
+  if (!document.getElementById('tab-summary').classList.contains('hidden')) renderSummary();
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (state.expenses.length === 0) { alert('No hay gastos que borrar'); return; }
+  if (!confirm('¿Borrar TODOS los ' + state.expenses.length + ' gastos? Esta acción no se puede deshacer. Los ajustes se mantienen.')) return;
+  if (!confirm('¿Estás absolutamente seguro? Última confirmación.')) return;
+  state.expenses = [];
+  save();
+  document.getElementById('settingsModal').classList.add('hidden');
+  renderList();
+});
+
+// -------- Init --------
+load();
+document.getElementById('fDate').value = todayISO();
+renderHeader();
+renderForm();
+renderList();
+renderBackupStatus();
+requestPersistence();
+</script>
+</body>
+</html>
